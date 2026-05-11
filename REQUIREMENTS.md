@@ -1,5 +1,9 @@
 # Requirements before implementation can start
 
+> See also: [ROADMAP.md](ROADMAP.md) for which phase each requirement
+> blocks. Phase 1 (Pairing API + DB schema) needs none of these and
+> can ship now. Phase 2 (ACME) blocks on the Cloudflare API token.
+
 This document lists every input the operator (you) needs to provide
 before `filamind-iot-proxy` can be built and deployed. Items marked
 **REQUIRED** must be answered before any code is written; items marked
