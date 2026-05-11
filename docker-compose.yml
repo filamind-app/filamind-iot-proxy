@@ -1,0 +1,55 @@
+services:
+  proxy-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-proxy}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
+      POSTGRES_DB: ${DB_NAME:-proxy}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', '${DB_USER:-proxy}']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  proxy-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--save', '', '--appendonly', 'no']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  proxy-api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      proxy-db:
+        condition: service_healthy
+      proxy-redis:
+        condition: service_healthy
+    environment:
+      DB_HOST: proxy-db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-proxy}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME:-proxy}
+      REDIS_HOST: proxy-redis
+      REDIS_PORT: 6379
+      PROXY_PUBLIC_URL: ${PROXY_PUBLIC_URL:-http://localhost:9100}
+      PAIRING_CODE_TTL_SECONDS: ${PAIRING_CODE_TTL_SECONDS:-7200}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - '127.0.0.1:9100:9100'
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', 'http://localhost:9100/healthz']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres-data:

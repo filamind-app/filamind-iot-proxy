@@ -80,3 +80,32 @@ jobs:
               [[ -f "$f" ]] || { echo "::error::missing $f"; exit 1; }
           done
           echo "All required docs present."
+
+  pytest-backend:
+    name: pytest (backend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install backend (with dev extras)
+        working-directory: backend
+        run: |
+          if [[ -f pyproject.toml ]]; then
+              pip install --upgrade pip
+              pip install -e '.[dev]'
+          else
+              echo "No backend/pyproject.toml yet — skipping"
+              exit 0
+          fi
+      - name: Run pytest
+        working-directory: backend
+        env:
+          DB_PASSWORD: test
+        run: |
+          if [[ -d tests ]]; then
+              pytest -q
+          else
+              echo "No tests yet — skipping"
+          fi
