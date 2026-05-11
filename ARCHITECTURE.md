@@ -1,8 +1,8 @@
 # Architecture notes
 
 Deeper design for `filamind-iot-proxy` — a self-hosted clone of
-`iot-proxy.odoo.com`'s public surface. Read [README.md](README.md) and
-[REQUIREMENTS.md](REQUIREMENTS.md) first.
+`iot-proxy.odoo.com`'s public surface. Read [README.md](README.md),
+[ROADMAP.md](ROADMAP.md), and [REQUIREMENTS.md](REQUIREMENTS.md) first.
 
 ## Goal
 

@@ -10,6 +10,7 @@ Pairs with [`filamind-iot`](https://github.com/filamind-app/filamind-iot)
 (Raspberry-Pi IoT Box image).
 
 > Status: **scaffold only — not yet implemented.** See
+> [ROADMAP.md](ROADMAP.md) for the full delivery plan, and
 > [REQUIREMENTS.md](REQUIREMENTS.md) for the inputs needed to start
 > implementation.
 
@@ -112,14 +113,19 @@ LGPL-3.0-or-later — same as `filamind-iot` and `filamind-iotbox`.
 ```
 [scaffold]
 ├── README.md            ← you are here
+├── ROADMAP.md           ← phased delivery plan, conventions, decisions
 ├── REQUIREMENTS.md      ← what we need from the operator before building
-├── ARCHITECTURE.md      ← deeper design notes
-├── docker-compose.yml   ← (todo)
-├── backend/             ← (todo) FastAPI source
-├── caddy/Caddyfile      ← (todo)
-├── frps/frps.toml       ← (todo)
-└── docs/                ← (todo) operator + customer guides
+├── ARCHITECTURE.md      ← deeper design notes (schema, sequences)
+├── docker-compose.yml   ← (todo, Phase 1)
+├── backend/             ← (todo, Phase 1) FastAPI source
+├── caddy/Caddyfile      ← (todo, Phase 7)
+├── frps/frps.toml       ← (todo, Phase 3)
+└── docs/                ← (todo, Phase 7) operator + customer guides
 ```
+
+**For the full delivery plan, file-level scope of every PR, decisions
+locked-in, decisions pending, conventions, migration paths, and
+acceptance criteria — see [ROADMAP.md](ROADMAP.md).**
 
 Tracking issue: [filamind-iot-proxy #1](https://github.com/filamind-app/filamind-iot-proxy/issues/1)
 (forthcoming).
