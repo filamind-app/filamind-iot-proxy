@@ -52,5 +52,34 @@ services:
       timeout: 3s
       retries: 5
 
+  # ── Phase 3: reverse-tunnel hub (frps) ───────────────────────────────
+  # Box-side frpc connects here over TCP and exposes its local HTTPS as
+  # https://<box-id>.tunnel.<your-zone>. Caddy fronts this in Phase 7;
+  # for now the vhost-https port is bound directly on the host.
+  #
+  # The frps process refuses to start until FRP_TOKEN is set in .env —
+  # there is no anonymous frps mode that's safe to expose.
+  proxy-frps:
+    image: snowdreamtech/frps:0.61.2
+    restart: unless-stopped
+    profiles: ['tunnel']
+    volumes:
+      - ./frp/frps.toml:/etc/frp/frps.toml:ro
+    environment:
+      FRP_TOKEN: ${FRP_TOKEN:?FRP_TOKEN must be set in .env (random ≥32 chars)}
+      FRP_VHOST_HTTPS_PORT: ${FRP_VHOST_HTTPS_PORT:-7443}
+      FRP_BIND_PORT: ${FRP_BIND_PORT:-7000}
+      FRP_DASHBOARD_USER: ${FRP_DASHBOARD_USER:-admin}
+      FRP_DASHBOARD_PASSWORD: ${FRP_DASHBOARD_PASSWORD:?FRP_DASHBOARD_PASSWORD must be set in .env}
+      FRP_DASHBOARD_PORT: ${FRP_DASHBOARD_PORT:-7500}
+    ports:
+      # Control channel — boxes connect here over the public internet.
+      - '${FRP_BIND_PORT:-7000}:7000'
+      # vhost-HTTPS — Caddy will front this in Phase 7. For now it's
+      # bound to localhost so it's only reachable over an SSH tunnel.
+      - '127.0.0.1:${FRP_VHOST_HTTPS_PORT:-7443}:7443'
+      # Dashboard — localhost-only; tunnel through SSH for ops UI.
+      - '127.0.0.1:${FRP_DASHBOARD_PORT:-7500}:7500'
+
 volumes:
   postgres-data:

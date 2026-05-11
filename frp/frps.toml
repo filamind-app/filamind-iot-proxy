@@ -1,0 +1,42 @@
+# frps configuration for filamind-iot-proxy reverse tunnel.
+#
+# Environment placeholders are expanded by frps at boot via the
+# embedded Go template engine (see https://gofrp.org). Do NOT add
+# secrets here literally -- put them in .env and reference via {{ .Envs }}.
+
+# Control-channel port: boxes connect here to register their tunnel.
+bindPort = {{ .Envs.FRP_BIND_PORT }}
+
+# Shared authentication token. Both server and every box must use the
+# same value; rotate by updating .env and restarting frps + every frpc.
+auth.method = "token"
+auth.token = "{{ .Envs.FRP_TOKEN }}"
+
+# vhost-HTTPS: each box exposes its local 443 as a subdomain like
+# box-id.tunnel.<your-zone>. Caddy fronts this on a public domain in
+# Phase 7; for now the port is bound to 127.0.0.1.
+vhostHTTPSPort = 7443
+
+# Subdomain root for client-allocated names. Box-side frpc sets
+# `subdomain = "<short-box-id>"` and reaches itself at
+# `<short-box-id>.<subDomainHost>`.
+subDomainHost = "tunnel.filamind.app"
+
+# Operator dashboard: read-only view of active tunnels at :7500.
+# Localhost-only by the compose port binding.
+webServer.addr = "0.0.0.0"
+webServer.port = 7500
+webServer.user = "{{ .Envs.FRP_DASHBOARD_USER }}"
+webServer.password = "{{ .Envs.FRP_DASHBOARD_PASSWORD }}"
+
+# Logging
+log.to = "console"
+log.level = "info"
+log.maxDays = 7
+
+# Limits: a single box should only register ONE tunnel (per box).
+# Enforced server-side so a misbehaving box can't fan out to many
+# subdomains. Tune via env if needed.
+maxPortsPerClient = 0
+maxPoolCount = 5
+heartbeatTimeout = 90
