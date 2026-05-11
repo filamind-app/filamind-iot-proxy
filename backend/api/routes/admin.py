@@ -33,6 +33,7 @@ from api.schemas import (
     TenantPatch,
 )
 from api.security import require_admin
+from api.services import acme as acme_svc
 from api.services import pairing as svc
 
 router = APIRouter(
@@ -66,6 +67,30 @@ async def get_box(box_id: UUID, session: AsyncSession = Depends(get_session)) ->
     box = await session.get(Box, box_id)
     if box is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "box_not_found")
+    return BoxOut.model_validate(box)
+
+
+@router.post("/boxes/{box_id}/issue_cert", response_model=BoxOut)
+async def issue_cert_for_box(
+    box_id: UUID, session: AsyncSession = Depends(get_session),
+) -> BoxOut:
+    if not acme_svc.is_configured():
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "acme_not_configured",
+        )
+    box = await session.get(Box, box_id)
+    if box is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "box_not_found")
+    try:
+        await acme_svc.issue_for_box(session, box)
+    except RuntimeError as exc:
+        await session.rollback()
+        raise HTTPException(
+            status.HTTP_502_BAD_GATEWAY, str(exc),
+        ) from exc
+    await session.commit()
+    await session.refresh(box)
     return BoxOut.model_validate(box)
 
 
