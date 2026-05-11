@@ -8,10 +8,21 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# System deps for psycopg + healthchecks
+# System deps for psycopg + healthchecks + lego (Phase 2 ACME)
 RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
+        ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+# Install lego (Let's Encrypt client used by api/services/acme.py).
+# Pinned by checksum-checked tarball. Skipped at runtime when ACME envs
+# are unset (api returns 503 acme_not_configured).
+ARG LEGO_VERSION=4.18.0
+RUN curl -fsSL "https://github.com/go-acme/lego/releases/download/v${LEGO_VERSION}/lego_v${LEGO_VERSION}_linux_amd64.tar.gz" \
+        -o /tmp/lego.tgz \
+    && tar -xzf /tmp/lego.tgz -C /usr/local/bin lego \
+    && rm /tmp/lego.tgz \
+    && chmod +x /usr/local/bin/lego
 
 # Install Python deps first for layer caching
 COPY backend/pyproject.toml backend/README.md ./

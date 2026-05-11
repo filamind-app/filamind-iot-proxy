@@ -44,6 +44,12 @@ services:
       PAIRING_CODE_TTL_SECONDS: ${PAIRING_CODE_TTL_SECONDS:-7200}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      CLOUDFLARE_DNS_API_TOKEN: ${CLOUDFLARE_DNS_API_TOKEN:-}
+      CERT_BASE_DOMAIN: ${CERT_BASE_DOMAIN:-}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+      ACME_STORAGE_PATH: ${ACME_STORAGE_PATH:-/var/lib/proxy/acme}
+    volumes:
+      - ./data/acme:/var/lib/proxy/acme
     ports:
       - '127.0.0.1:9100:9100'
     healthcheck:

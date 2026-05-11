@@ -31,6 +31,15 @@ class Settings(BaseSettings):
     # Set via env (ADMIN_TOKEN=...) — never commit a value.
     admin_token: str = Field(default="")
 
+    # -- ACME / Let's Encrypt (Phase 2) --
+    # If any of these is empty, /admin/boxes/{id}/issue_cert returns 503
+    # and certs are not minted. Box can still pair via the existing
+    # rendezvous flow; only the per-box LE cert is gated on this.
+    cloudflare_dns_api_token: str = Field(default="")
+    cert_base_domain: str = Field(default="")  # e.g. box.filamind.app
+    acme_email: str = Field(default="")  # contact email for LE account
+    acme_storage_path: str = Field(default="/var/lib/proxy/acme")
+
     @property
     def database_url(self) -> str:
         return (
