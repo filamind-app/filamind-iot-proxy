@@ -28,6 +28,13 @@ def _utcnow() -> datetime:
     return datetime.now(UTC)
 
 
+def _aware(dt: datetime) -> datetime:
+    """SQLite (used in tests) drops tz info on read; Postgres TIMESTAMPTZ
+    always returns aware. Normalize to UTC-aware so comparisons don't
+    raise TypeError."""
+    return dt if dt.tzinfo else dt.replace(tzinfo=UTC)
+
+
 def _generate_code() -> str:
     s = get_settings()
     return "".join(
@@ -133,7 +140,7 @@ async def poll_code(session: AsyncSession, code: str) -> dict:
             "paired_at": box.paired_at if box else None,
         }
 
-    if pc.expires_at <= _utcnow():
+    if _aware(pc.expires_at) <= _utcnow():
         return {"code": code, "status": "expired", "box_id": pc.box_id}
 
     return {"code": code, "status": "pending", "box_id": pc.box_id}
@@ -155,7 +162,7 @@ async def finalize(
         raise ValueError("unknown_code")
     if pc.consumed_at is not None:
         raise ValueError("already_consumed")
-    if pc.expires_at <= _utcnow():
+    if _aware(pc.expires_at) <= _utcnow():
         raise ValueError("expired")
 
     box = await session.scalar(
