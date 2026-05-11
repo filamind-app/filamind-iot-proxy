@@ -60,7 +60,7 @@ class FinalizeResponse(BaseModel):
     paired_at: datetime
 
 
-# -- Admin (Phase 1: read-only views; Phase 4 expands) -------------------
+# -- Admin ----------------------------------------------------------------
 
 class BoxOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -84,7 +84,41 @@ class TenantOut(BaseModel):
     plan: str
     box_quota: int
     contact_email: str | None
+    license_key: str | None
+    license_expires: datetime | None
     created_at: datetime
+
+
+class TenantCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+    plan: str = Field(default="free", max_length=32)
+    box_quota: int = Field(default=5, ge=0, le=10_000)
+    contact_email: str | None = Field(default=None, max_length=255)
+    license_key: str | None = Field(default=None, max_length=255)
+    license_expires: datetime | None = None
+
+
+class TenantPatch(BaseModel):
+    """All fields optional — only the ones present are updated."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    plan: str | None = Field(default=None, max_length=32)
+    box_quota: int | None = Field(default=None, ge=0, le=10_000)
+    contact_email: str | None = Field(default=None, max_length=255)
+    license_key: str | None = Field(default=None, max_length=255)
+    license_expires: datetime | None = None
+
+
+class AuditOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    ts: datetime
+    tenant_id: UUID | None
+    box_id: UUID | None
+    actor: str
+    event: str
+    payload: dict | None
 
 
 # -- Health ---------------------------------------------------------------

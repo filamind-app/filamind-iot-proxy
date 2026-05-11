@@ -27,6 +27,10 @@ class Settings(BaseSettings):
 
     log_level: str = Field(default="info")
 
+    # Operator bearer token. If empty, /admin/* refuses every request.
+    # Set via env (ADMIN_TOKEN=...) — never commit a value.
+    admin_token: str = Field(default="")
+
     @property
     def database_url(self) -> str:
         return (

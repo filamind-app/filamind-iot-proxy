@@ -43,6 +43,7 @@ services:
       PROXY_PUBLIC_URL: ${PROXY_PUBLIC_URL:-http://localhost:9100}
       PAIRING_CODE_TTL_SECONDS: ${PAIRING_CODE_TTL_SECONDS:-7200}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
     ports:
       - '127.0.0.1:9100:9100'
     healthcheck:
