@@ -105,10 +105,4 @@ async def test_finalize_twice_409(client):
     assert second.json()["detail"] == "already_consumed"
 
 
-@pytest.mark.asyncio
-async def test_admin_lists_paired_box(client):
-    await client.post("/iot/connect", json={"serial_number": "PI-ADMIN-1"})
-    r = await client.get("/admin/boxes")
-    assert r.status_code == 200
-    serials = [b["serial_number"] for b in r.json()]
-    assert "PI-ADMIN-1" in serials
+# /admin/* coverage moved to test_admin.py (now bearer-auth gated).
