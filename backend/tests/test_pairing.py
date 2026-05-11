@@ -98,7 +98,9 @@ async def test_finalize_twice_409(client):
     ok = await client.post("/iot/finalize", json=body)
     assert ok.status_code == 200
 
-    second = await client.post("/iot/finalize", json={**body, "db_uuid": "second"})
+    second = await client.post(
+        "/iot/finalize", json={**body, "db_uuid": "second-db-uuid"},
+    )
     assert second.status_code == 409
     assert second.json()["detail"] == "already_consumed"
 
