@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  lint-python:
+    name: Lint Python (ruff + py_compile)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: ruff check (whole tree)
+        run: |
+          if find . -path ./.git -prune -o -name '*.py' -print | head -1 | grep -q .; then
+              ruff check .
+          else
+              echo "No Python files yet — skipping"
+          fi
+
+      - name: py_compile every Python file
+        run: |
+          fail=0
+          while IFS= read -r f; do
+              python -m py_compile "$f" \
+                  || { echo "::error file=$f::syntax error"; fail=1; }
+          done < <(find . -path ./.git -prune -o -name '*.py' -print)
+          exit $fail
+
+  lint-yaml:
+    name: Lint YAML (workflow + compose files)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pyyaml
+      - run: |
+          fail=0
+          while IFS= read -r f; do
+              python -c "import yaml; yaml.safe_load(open('$f'))" \
+                  || { echo "::error file=$f::malformed YAML"; fail=1; }
+          done < <(find . -path ./.git -prune -o -name '*.yml' -print -o -name '*.yaml' -print)
+          exit $fail
+
+  lint-shell:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+      - run: |
+          if find . -name '*.sh' -path ./.git -prune -o -name '*.sh' -print | head -1 | grep -q .; then
+              find . -name '*.sh' -not -path './.git/*' \
+                  -exec shellcheck -e SC1091,SC2086,SC2155 {} +
+          else
+              echo "No shell scripts yet — skipping"
+          fi
+
+  docs-sanity:
+    name: Required docs present
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          required=(README.md REQUIREMENTS.md ARCHITECTURE.md LICENSE)
+          for f in "${required[@]}"; do
+              [[ -f "$f" ]] || { echo "::error::missing $f"; exit 1; }
+          done
+          echo "All required docs present."
