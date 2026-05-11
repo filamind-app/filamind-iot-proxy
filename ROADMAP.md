@@ -398,35 +398,50 @@ Long-term fix: ship our changes as a runtime monkey-patch loaded from
 
 ## 7. Operational state
 
-### Live deployments
+### Live deployments (high-level only — credentials kept in operator's local notes)
 
-| What | Where | Owner | Notes |
-|---|---|---|---|
-| Customer Odoo (Enterprise + filamind addons) | https://deltafabs.com | customer | Currently running v1.1.0 of filamind-iot |
-| Customer IoT Box | 192.168.0.254 (LAN) | customer | Re-paired with Odoo Enterprise (`payout.odoo.com`); has filamind drivers + helpers but git-tracked patches WIPED on re-pair |
-| filamind-iot-proxy | (not deployed yet) | — | Will deploy at Phase 7 to `iot-proxy.filamind.app` |
+| What | Status | Notes |
+|---|---|---|
+| Customer Odoo (Enterprise + filamind addons) | live | Running filamind-iot v1.1.0 |
+| Customer IoT Box | live | Currently re-paired with upstream Odoo proxy; filamind vendor drivers + helpers survived the re-pair, git-tracked patches did not |
+| filamind-iot-proxy | not deployed yet | Target for Phase 7: `iot-proxy.filamind.app` |
 
-### SSH access to servers
+### Credentials, IPs, hostnames, paths
+**Kept out of this public file by design.** The operator maintains a
+local-only `OPERATIONAL_NOTES.md` containing:
+- SSH credentials for the customer server + box
+- Odoo admin credentials
+- Database connection strings
+- Internal IPs / LAN topology
+- Server file paths
+- Cloudflare API token (when provided)
+- Helper-script invocation cheat-sheet
 
-| Server | IP | User | Method | Notes |
-|---|---|---|---|---|
-| Customer Odoo | 157.90.152.154 | root | password (`Myserver@1209`) | Test creds, OK to use |
-| Customer Box | 192.168.0.254 | pi | SSH key (already deployed in WSL `~/.ssh/id_ed25519`) | Or password rotated via `/iot_drivers/generate_password` |
-| Customer Enterprise SaaS | https://payout.odoo.com | eg2@live.co.uk | password (`Myserver@1200`) | Odoo Enterprise admin |
+Anyone resuming this project who needs operational access should ask
+the operator for the local notes file. **Do not** add such details to
+this roadmap, any commit message, any PR description, or any GitHub
+issue.
 
-### DNS state
-All operator domains hosted at Cloudflare. To-be-added records (Phase 7):
+### DNS state (Phase 7 target)
+All operator domains are hosted at Cloudflare. Three records will be
+added when Phase 7 deploys:
 ```
 iot-proxy.filamind.app   A      <proxy-server-public-ip>
 *.box.filamind.app       A      <proxy-server-public-ip>
 *.tunnel.filamind.app    A      <proxy-server-public-ip>
 ```
 
-### Locations on operator's customer server (`/home/deltafabs.com/...`)
-- Filamind addons: `custom_addons/filamind_*` (14 addons, **NOT** `filamind/` which is unrelated 3D-printer product)
-- Pre-upgrade backup: `filamind-upgrade-backups/v1.1.0-20260511-110837/`
-- Odoo container: `odoo-web` (in Docker)
-- Postgres: `odoo-db` container, password `Myserver@1200`
+### Customer server layout — directory pattern only
+- Filamind addons under `custom_addons/filamind_*` (14 addons).
+  **NOT** `custom_addons/filamind/` — that's an unrelated
+  3D-printer product belonging to the same operator. **Never use the
+  glob `filamind*` (without underscore) — always `filamind_*`** so the
+  3D-printer dir is left untouched.
+- Pre-upgrade backups land under
+  `<addons_root>/filamind-upgrade-backups/v<X>-<timestamp>/` (created
+  automatically by `tools/upgrade.sh`).
+- Odoo runs in a Docker container; Postgres in a sibling container.
+  Specific names + creds in the local notes file.
 
 ---
 
